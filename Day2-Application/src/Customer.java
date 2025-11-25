@@ -1,7 +1,8 @@
 public class Customer {
-    private  String id;
+    private String id;
     private String name;
     private String address;
+
 
     public Customer(String id, String name, String address) {
         this.id = id;
@@ -9,7 +10,14 @@ public class Customer {
         this.address = address;
     }
 
-    public Customer() {
+    public Customer() {}
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 
     public String getId() {
@@ -28,11 +36,12 @@ public class Customer {
         this.name = name;
     }
 
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
+    @Override
+    public String toString() {
+        return "Customer{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", address='" + address + '\'' +
+                '}';
     }
 }

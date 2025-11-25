@@ -1,87 +1,220 @@
+<!DOCTYPE html>
 <html>
 <head>
-    <title>Sample HTML Page</title>
+    <title>Customer Management</title>
+    <link rel="stylesheet" href="index.css">
 </head>
 <body>
-<h1>Welcome to the Sample HTML Page</h1>
-<p>This is a simple HTML document.</p>
-<div>
-    <input type="text" id="cid" placeholder="Enter your Id">
-    <input type="text" id="cname" placeholder="Enter your Name">
-    <input type="text" id="caddress" placeholder="Enter your Address">
-    <button id="save-customer">Save</button>
-    <div id="content"></div>
-    <button id="delete-customer">Delete</button>
-    <button id="update-customer">Update</button>
 
+<h1>Customer Management System</h1>
+<p style="color: #666; font-size: 14px;">Click on any customer row in the table to load data for editing or deletion</p>
+
+<div class="form-container">
+    <input type="text" id="cid" placeholder="Enter Customer ID">
+    <input type="text" id="cname" placeholder="Enter Customer Name">
+    <input type="text" id="caddress" placeholder="Enter Customer Address">
+    <br>
+    <button id="save-customer">Save</button>
+    <button id="update-customer">Update</button>
+    <button id="delete-customer">Delete</button>
+    <button id="clear-btn">Clear</button>
 </div>
-<button id="get-customer">GET</button>
+
+<button id="get-customer">Get All Customers</button>
+
+<div id="message" class="message"></div>
+
+<div id="content">
+    <table id="customer-table" style="display:none;">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Address</th>
+        </tr>
+        </thead>
+        <tbody id="table-body">
+        </tbody>
+    </table>
+</div>
+
 <script src="jquery-3.7.1.min.js"></script>
 
 <script>
 
+    const BASE_URL = "http://localhost:8080/Day2_Application_Web_exploded/customer";
 
+    // Show message function
+    function showMessage(message, isSuccess) {
+        const msgDiv = $('#message');
+        msgDiv.removeClass('success error');
+        msgDiv.addClass(isSuccess ? 'success' : 'error');
+        msgDiv.text(message);
+        msgDiv.fadeIn();
 
-    $('#save-customer').click(function(){
+        setTimeout(function() {
+            msgDiv.fadeOut();
+        }, 3000);
+    }
 
-        var cid=$('#cid').val();
-        var cname=$('#cname').val();
-        var caddress=$('#caddress').val();
+    // Load customers into table
+    function loadCustomers() {
+        $.ajax({
+            url: BASE_URL,
+            method: "GET",
+            success: function (response) {
+                $('#table-body').html(response);
+                $('#customer-table').show();
+
+                // Add click event to table rows
+                attachRowClickEvents();
+            },
+            error: function (xhr, status, error) {
+                console.error("Error:", error);
+                showMessage("Error loading customers", false);
+            }
+        });
+    }
+
+    // Attach click events to table rows
+    function attachRowClickEvents() {
+        $('#table-body tr').click(function() {
+            // Remove selected class from all rows
+            $('#table-body tr').removeClass('selected');
+
+            // Add selected class to clicked row
+            $(this).addClass('selected');
+
+            // Get data from clicked row
+            let id = $(this).find('td:eq(0)').text();
+            let name = $(this).find('td:eq(1)').text();
+            let address = $(this).find('td:eq(2)').text();
+
+            // Load data into form fields
+            $('#cid').val(id);
+            $('#cname').val(name);
+            $('#caddress').val(address);
+
+            // Scroll to form
+            $('html, body').animate({
+                scrollTop: $('.form-container').offset().top - 20
+            }, 500);
+
+            showMessage("Customer loaded. You can now Update or Delete.", true);
+        });
+    }
+
+    // Clear form fields
+    function clearForm() {
+        $('#cid').val('');
+        $('#cname').val('');
+        $('#caddress').val('');
+
+        // Remove selected class from table rows
+        $('#table-body tr').removeClass('selected');
+    }
+
+    // ---------------------- SAVE CUSTOMER (POST) ----------------------
+    $('#save-customer').click(function () {
+        let cid = $('#cid').val().trim();
+        let cname = $('#cname').val().trim();
+        let caddress = $('#caddress').val().trim();
+
+        if (!cid || !cname || !caddress) {
+            showMessage("Please fill all fields", false);
+            return;
+        }
 
         $.ajax({
-            url:"http://localhost:8080/Day2_Application_Web_exploded/customer?id="+cid+"&name"+cname+"&address="+caddress,
-            method:'POST',
-            success:function(response){
-                console.log(response);
+            url: BASE_URL,
+            method: "POST",
+            data: {
+                id: cid,
+                name: cname,
+                address: caddress
             },
-            error:function(){
-                console.log('Error occurred while fetching data.');
+            success: function (response) {
+                showMessage(response, true);
+                clearForm();
+                loadCustomers();
+            },
+            error: function (xhr) {
+                showMessage(xhr.responseText || "Error saving customer", false);
             }
-        })
+        });
     });
 
-    $('#get-customer').click(function(){
+    // ---------------------- GET CUSTOMERS ----------------------
+    $('#get-customer').click(function () {
+        loadCustomers();
+    });
 
-        var cid=$('#cid').val();
-        var cname=$('#cname').val();
-        var caddress=$('#caddress').val();
+    // ---------------------- UPDATE CUSTOMER (PUT) ----------------------
+    $('#update-customer').click(function () {
+        let cid = $('#cid').val().trim();
+        let cname = $('#cname').val().trim();
+        let caddress = $('#caddress').val().trim();
+
+        if (!cid || !cname || !caddress) {
+            showMessage("Please fill all fields", false);
+            return;
+        }
+
+        // Using URL parameters for PUT since jQuery doesn't send body data properly
+        $.ajax({
+            url: BASE_URL + "?id=" + encodeURIComponent(cid) +
+                "&name=" + encodeURIComponent(cname) +
+                "&address=" + encodeURIComponent(caddress),
+            method: "PUT",
+            success: function (response) {
+                showMessage(response, true);
+                clearForm();
+                loadCustomers();
+            },
+            error: function (xhr) {
+                showMessage(xhr.responseText || "Error updating customer", false);
+            }
+        });
+    });
+
+    // ---------------------- DELETE CUSTOMER ----------------------
+    $('#delete-customer').click(function () {
+        let cid = $('#cid').val().trim();
+
+        if (!cid) {
+            showMessage("Please enter Customer ID to delete", false);
+            return;
+        }
+
+        if (!confirm("Are you sure you want to delete customer with ID: " + cid + "?")) {
+            return;
+        }
 
         $.ajax({
-            url:'http://localhost:8080/Day2_Application_Web_exploded/customer',
-            method:'GET',
-            success:function(response){
-                console.log(response);
-                $('#content').append(response);
+            url: BASE_URL + "?id=" + encodeURIComponent(cid),
+            method: "DELETE",
+            success: function (response) {
+                showMessage("Customer deleted successfully", true);
+                clearForm();
+                loadCustomers();
             },
-            error:function(){
-                console.log('Error occurred while fetching data.');
+            error: function (xhr) {
+                showMessage(xhr.responseText || "Error deleting customer", false);
             }
-        })
+        });
     });
 
-    $('#delete-customer').click(function(){
-
-        var cid=$('#cid').val();
-
-
-        $.ajax({
-            url:'http://localhost:8080/Day2_Application_Web_exploded/customer',
-            method:'DELETE',
-            success:function(response){
-                console.log(response);
-                $('#content').append(response);
-            },
-            error:function(){
-                console.log('Error occurred while fetching data.');
-            }
-        })
+    // ---------------------- CLEAR BUTTON ----------------------
+    $('#clear-btn').click(function () {
+        clearForm();
     });
 
-
-
-
-
+    // Load customers on page load
+    $(document).ready(function() {
+        loadCustomers();
+    });
 
 </script>
+
 </body>
 </html>
