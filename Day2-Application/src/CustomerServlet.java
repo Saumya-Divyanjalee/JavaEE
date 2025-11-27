@@ -48,20 +48,16 @@ public class CustomerServlet extends HttpServlet {
         resp.setContentType("text/html;charset=UTF-8");
 
         if (customers.isEmpty()) {
-            resp.getWriter().println(
-                    "<tr>" +
-                            "<td colspan='3' style='text-align:center; color:#999;'>No customers found. Add a customer to get started.</td>" +
-                            "</tr>"
-            );
+            resp.getWriter().println("No customers found.");
             return;
         }
 
         for (Customer c : customers) {
             resp.getWriter().println(
                     "<tr>" +
-                            "<td>" + escapeHtml(c.getId()) + "</td>" +
-                            "<td>" + escapeHtml(c.getName()) + "</td>" +
-                            "<td>" + escapeHtml(c.getAddress()) + "</td>" +
+                            "<td>" + c.getId()+ "</td>" +
+                            "<td>" + c.getName()+ "</td>" +
+                            "<td>" + c.getAddress()+ "</td>" +
                             "</tr>"
             );
         }
@@ -72,12 +68,12 @@ public class CustomerServlet extends HttpServlet {
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         resp.setContentType("text/plain;charset=UTF-8");
 
-        // Read parameters from URL query string
+
         String id = req.getParameter("id");
         String name = req.getParameter("name");
         String address = req.getParameter("address");
 
-        // Validation
+
         if (id == null || name == null || address == null ||
                 id.trim().isEmpty() || name.trim().isEmpty() || address.trim().isEmpty()) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -129,13 +125,5 @@ public class CustomerServlet extends HttpServlet {
         resp.getWriter().write("Customer deleted successfully");
     }
 
-    // Helper method to escape HTML to prevent XSS
-    private String escapeHtml(String text) {
-        if (text == null) return "";
-        return text.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;")
-                .replace("'", "&#x27;");
-    }
+
 }

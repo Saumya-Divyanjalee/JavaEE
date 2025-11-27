@@ -2,12 +2,12 @@
 <html>
 <head>
     <title>Customer Management</title>
-    <link rel="stylesheet" href="index.css">
+     <link rel="stylesheet" href="index.css">
 </head>
 <body>
 
 <h1>Customer Management System</h1>
-<p style="color: #666; font-size: 14px;">Click on any customer row in the table to load data for editing or deletion</p>
+
 
 <div class="form-container">
     <input type="text" id="cid" placeholder="Enter Customer ID">
@@ -25,7 +25,7 @@
 <div id="message" class="message"></div>
 
 <div id="content">
-    <table id="customer-table" style="display:none;">
+    <table id="customer-table">
         <thead>
         <tr>
             <th>ID</th>
@@ -114,7 +114,7 @@
         $('#table-body tr').removeClass('selected');
     }
 
-    // ---------------------- SAVE CUSTOMER (POST) ----------------------
+     // save
     $('#save-customer').click(function () {
         let cid = $('#cid').val().trim();
         let cname = $('#cname').val().trim();
@@ -144,13 +144,11 @@
         });
     });
 
-    // ---------------------- GET CUSTOMERS ----------------------
     $('#get-customer').click(function () {
         loadCustomers();
     });
 
-    // ---------------------- UPDATE CUSTOMER (PUT) ----------------------
-    $('#update-customer').click(function () {
+     $('#update-customer').click(function () {
         let cid = $('#cid').val().trim();
         let cname = $('#cname').val().trim();
         let caddress = $('#caddress').val().trim();
@@ -177,7 +175,7 @@
         });
     });
 
-    // ---------------------- DELETE CUSTOMER ----------------------
+
     $('#delete-customer').click(function () {
         let cid = $('#cid').val().trim();
 
@@ -204,7 +202,7 @@
         });
     });
 
-    // ---------------------- CLEAR BUTTON ----------------------
+
     $('#clear-btn').click(function () {
         clearForm();
     });
