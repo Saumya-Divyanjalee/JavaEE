@@ -5,125 +5,147 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 @WebServlet(urlPatterns = "/customer")
 public class CustomerServlet extends HttpServlet {
-    private static final List<Customer> customers = new ArrayList<>();
-
 
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("text/plain;charset=UTF-8");
-
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String id = req.getParameter("id");
         String name = req.getParameter("name");
         String address = req.getParameter("address");
 
-
-        if (id == null || name == null || address == null ||
-                id.trim().isEmpty() || name.trim().isEmpty() || address.trim().isEmpty()) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("All fields are required");
-            return;
-        }
-
-        // Check if customer with same ID already exists
-        for (Customer c : customers) {
-            if (c.getId().equals(id)) {
-                resp.setStatus(HttpServletResponse.SC_CONFLICT);
-                resp.getWriter().write("Customer with ID " + id + " already exists");
-                return;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection connection= DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/javaeeapp",
+                    "root","root");
+            String query="INSERT INTO customer(id,name,address) VALUES (?,?,?)";
+            PreparedStatement preparedStatement=connection.prepareStatement(query);
+            preparedStatement.setString(1,id);
+            preparedStatement.setString(2,name);
+            preparedStatement.setString(3,address);
+            int rowInserted=preparedStatement.executeUpdate();
+            if (rowInserted>0){
+                resp.getWriter().println("Customer saved successfully");
+            }else {
+                resp.getWriter().println("Customer not saved");
             }
+            connection.close();
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-
-        customers.add(new Customer(id, name, address));
-        resp.getWriter().write("Customer Saved Successfully");
     }
 
-
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         resp.setContentType("text/html;charset=UTF-8");
 
-        if (customers.isEmpty()) {
-            resp.getWriter().println("No customers found.");
-            return;
-        }
+        String id = req.getParameter("id");
 
-        for (Customer c : customers) {
-            resp.getWriter().println(
-                    "<tr>" +
-                            "<td>" + c.getId()+ "</td>" +
-                            "<td>" + c.getName()+ "</td>" +
-                            "<td>" + c.getAddress()+ "</td>" +
-                            "</tr>"
-            );
+        StringBuilder html = new StringBuilder();
+        html.append("<html><body>");
+        html.append("<h2>Customer Data</h2>");
+        html.append("<table border='1' cellpadding='10' style='border-collapse: collapse;'>");
+        html.append("<tr><th>ID</th><th>Name</th><th>Address</th></tr>");
+
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection connection = DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/javaeeapp", "root", "root");
+
+            PreparedStatement ps;
+
+            if (id == null) {
+                ps = connection.prepareStatement("SELECT * FROM customer");
+            } else {
+                ps = connection.prepareStatement("SELECT * FROM customer WHERE id=?");
+                ps.setString(1, id);
+            }
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                html.append("<tr>");
+                html.append("<td>").append(rs.getString("id")).append("</td>");
+                html.append("<td>").append(rs.getString("name")).append("</td>");
+                html.append("<td>").append(rs.getString("address")).append("</td>");
+                html.append("</tr>");
+            }
+
+            html.append("</table>");
+            html.append("</body></html>");
+
+            resp.getWriter().print(html.toString());
+
+            rs.close();
+            ps.close();
+            connection.close();
+
+        } catch (Exception e) {
+            resp.getWriter().println("Error: " + e.getMessage());
         }
     }
 
-    // ---------------------- UPDATE (PUT) ----------------------
+
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("text/plain;charset=UTF-8");
-
-
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String id = req.getParameter("id");
         String name = req.getParameter("name");
         String address = req.getParameter("address");
 
-
-        if (id == null || name == null || address == null ||
-                id.trim().isEmpty() || name.trim().isEmpty() || address.trim().isEmpty()) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("All fields are required");
-            return;
-        }
-
-        for (Customer c : customers) {
-            if (c.getId().equals(id)) {
-                c.setName(name);
-                c.setAddress(address);
-                resp.getWriter().write("Customer Updated Successfully");
-                return;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection connection= DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/javaeeapp",
+                    "root","root");
+            String query="update customer set name=?,address=? where id=?";
+            PreparedStatement preparedStatement=connection.prepareStatement(query);
+            preparedStatement.setString(1,name);
+            preparedStatement.setString(2,address);
+            preparedStatement.setString(3,id);
+            int rowInserted=preparedStatement.executeUpdate();
+            if (rowInserted>0){
+                resp.getWriter().println("Customer updated successfully");
+            }else {
+                resp.getWriter().println("Customer not updated");
             }
+            connection.close();
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-
-        resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        resp.getWriter().write("Customer with ID " + id + " not found");
     }
 
-    // ---------------------- DELETE ----------------------
     @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setContentType("text/plain;charset=UTF-8");
-
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String id = req.getParameter("id");
 
-        if (id == null || id.trim().isEmpty()) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write("Customer ID is required");
-            return;
-        }
-
-        Customer toRemove = null;
-        for (Customer c : customers) {
-            if (c.getId().equals(id)) {
-                toRemove = c;
-                break;
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection connection= DriverManager.getConnection(
+                    "jdbc:mysql://localhost:3306/javaeeapp",
+                    "root","root");
+            String query="delete from customer where id=?";
+            PreparedStatement preparedStatement=connection.prepareStatement(query);
+            preparedStatement.setString(1,id);
+            int rowDeleted=preparedStatement.executeUpdate();
+            if (rowDeleted>0){
+                resp.getWriter().println("Customer deleted successfully");
+            }else {
+                resp.getWriter().println("Customer not deleted");
             }
+            connection.close();
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-
-        if (toRemove == null) {
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            resp.getWriter().write("Customer with ID " + id + " not found");
-            return;
-        }
-
-        customers.remove(toRemove);
-        resp.getWriter().write("Customer deleted successfully");
     }
-
-
 }
