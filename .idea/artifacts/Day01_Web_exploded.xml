@@ -6,6 +6,7 @@
       <element id="directory" name="WEB-INF">
         <element id="directory" name="classes">
           <element id="module-output" name="Day01" />
+          <element id="module-output" name="Day2-Application" />
         </element>
       </element>
     </root>

@@ -30,7 +30,7 @@ public class CustomerServlet extends HttpServlet {
         out.println("delete");
     }
 
-//    @Override
+//    @Overrided
 //    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 //        System.out.println("post");
 //        PrintWriter out = resp.getWriter();
