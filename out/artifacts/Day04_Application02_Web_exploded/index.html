@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Customer Management</title>
+     <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<h1>Customer Management System</h1>
+
+
+<div class="form-container">
+    <input type="text" id="cid" placeholder="Enter Customer ID">
+    <input type="text" id="cname" placeholder="Enter Customer Name">
+    <input type="text" id="caddress" placeholder="Enter Customer Address">
+    <br>
+    <button id="save-customer">Save</button>
+    <button id="update-customer">Update</button>
+    <button id="delete-customer">Delete</button>
+    <button id="clear-btn">Clear</button>
+</div>
+
+<button id="get-customer">Get All Customers</button>
+
+<div id="message" class="message"></div>
+
+<div id="content">
+    <table id="customer-table">
+<!--        <thead>-->
+<!--        <tr>-->
+<!--            <th>ID</th>-->
+<!--            <th>Name</th>-->
+<!--            <th>Address</th>-->
+<!--        </tr>-->
+<!--        </thead>-->
+        <tbody id="table-body">
+        </tbody>
+    </table>
+</div>
+
+<script src="jquery-3.7.1.min.js"></script>
+
+<script>
+
+    const BASE_URL = "http://localhost:8080/Day04_Application02_Web_exploded/dbcp";
+
+    // Show message function
+    function showMessage(message, isSuccess) {
+        const msgDiv = $('#message');
+        msgDiv.removeClass('success error');
+        msgDiv.addClass(isSuccess ? 'success' : 'error');
+        msgDiv.text(message);
+        msgDiv.fadeIn();
+
+        setTimeout(function() {
+            msgDiv.fadeOut();
+        }, 3000);
+    }
+
+    // Load customers into table
+    function loadCustomers() {
+        $.ajax({
+            url: BASE_URL,
+            method: "GET",
+            success: function (response) {
+                $('#table-body').html(response);
+                $('#customer-table').show();
+
+                // Add click event to table rows
+                attachRowClickEvents();
+            },
+            error: function (xhr, status, error) {
+                console.error("Error:", error);
+                showMessage("Error loading customers", false);
+            }
+        });
+    }
+
+    // Attach click events to table rows
+    function attachRowClickEvents() {
+        $('#table-body tr').click(function() {
+            // Remove selected class from all rows
+            $('#table-body tr').removeClass('selected');
+
+            // Add selected class to clicked row
+            $(this).addClass('selected');
+
+            // Get data from clicked row
+            let id = $(this).find('td:eq(0)').text();
+            let name = $(this).find('td:eq(1)').text();
+            let address = $(this).find('td:eq(2)').text();
+
+            // Load data into form fields
+            $('#cid').val(id);
+            $('#cname').val(name);
+            $('#caddress').val(address);
+
+            // Scroll to form
+            $('html, body').animate({
+                scrollTop: $('.form-container').offset().top - 20
+            }, 500);
+
+            showMessage("Customer loaded. You can now Update or Delete.", true);
+        });
+    }
+
+    // Clear form fields
+    function clearForm() {
+        $('#cid').val('');
+        $('#cname').val('');
+        $('#caddress').val('');
+
+        // Remove selected class from table rows
+        $('#table-body tr').removeClass('selected');
+    }
+
+     // save
+    $('#save-customer').click(function () {
+        let cid = $('#cid').val().trim();
+        let cname = $('#cname').val().trim();
+        let caddress = $('#caddress').val().trim();
+
+        if (!cid || !cname || !caddress) {
+            showMessage("Please fill all fields", false);
+            return;
+        }
+
+        $.ajax({
+            url: BASE_URL,
+            method: "POST",
+            data: {
+                id: cid,
+                name: cname,
+                address: caddress
+            },
+            success: function (response) {
+                showMessage(response, true);
+                clearForm();
+                loadCustomers();
+            },
+            error: function (xhr) {
+                showMessage(xhr.responseText || "Error saving customer", false);
+            }
+        });
+    });
+
+    $('#get-customer').click(function () {
+        loadCustomers();
+    });
+
+     $('#update-customer').click(function () {
+        let cid = $('#cid').val().trim();
+        let cname = $('#cname').val().trim();
+        let caddress = $('#caddress').val().trim();
+
+        if (!cid || !cname || !caddress) {
+            showMessage("Please fill all fields", false);
+            return;
+        }
+
+        // Using URL parameters for PUT since jQuery doesn't send body data properly
+        $.ajax({
+            url: BASE_URL + "?id=" + encodeURIComponent(cid) +
+                "&name=" + encodeURIComponent(cname) +
+                "&address=" + encodeURIComponent(caddress),
+            method: "PUT",
+            success: function (response) {
+                showMessage(response, true);
+                clearForm();
+                loadCustomers();
+            },
+            error: function (xhr) {
+                showMessage(xhr.responseText || "Error updating customer", false);
+            }
+        });
+    });
+
+
+    $('#delete-customer').click(function () {
+        let cid = $('#cid').val().trim();
+
+        if (!cid) {
+            showMessage("Please enter Customer ID to delete", false);
+            return;
+        }
+
+        if (!confirm("Are you sure you want to delete customer with ID: " + cid + "?")) {
+            return;
+        }
+
+        $.ajax({
+            url: BASE_URL + "?id=" + encodeURIComponent(cid),
+            method: "DELETE",
+            success: function (response) {
+                showMessage("Customer deleted successfully", true);
+                clearForm();
+                loadCustomers();
+            },
+            error: function (xhr) {
+                showMessage(xhr.responseText || "Error deleting customer", false);
+            }
+        });
+    });
+
+
+    $('#clear-btn').click(function () {
+        clearForm();
+    });
+
+    // Load customers on page load
+    $(document).ready(function() {
+        loadCustomers();
+    });
+
+</script>
+
+</body>
+</html>
