@@ -30,12 +30,12 @@ public class CustomerServlet extends HttpServlet {
         out.println("delete");
     }
 
-//    @Overrided
-//    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-//        System.out.println("post");
-//        PrintWriter out = resp.getWriter();
-//        out.println("post");
-//    }
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println("post");
+        PrintWriter out = resp.getWriter();
+        out.println("post");
+    }
 
 
 }
