@@ -1,0 +1,8 @@
+package lk.ijse.aad;
+
+import jakarta.servlet.http.HttpServlet;
+
+
+public class Main extends HttpServlet {
+
+}

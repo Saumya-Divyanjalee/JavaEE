@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customers</title>
+</head>
+<body>
+<div>
+    <button onclick="window.location.href='customer.html'">Customers</button>
+    <button onclick="window.location.href='item.html'">Items</button>
+    <button onclick="window.location.href='order.html'">Orders</button>
+    <button onclick="window.location.href='../index.html'">Home</button>
+</div>
+<h1>Customers</h1>
+
+<div>
+    <input type="text" id="customer_id" placeholder="Customer ID">
+    <input type="text" id="customer_name" placeholder="Customer Name">
+    <input type="text" id="customer_address" placeholder="Customer Address">
+    <button onclick="saveCustomr()">Save</button>
+    <button onclick="updateCustomer()">Update</button>
+    <button onclick="deleteCustomer()">Delete</button>
+</div>
+<script src="../js/jquery-3.7.1.min.js"></script>
+<script>
+    function saveCustomr(){
+       // const cid =$("#customer_id").val()
+       //  const cname =$("#customer_name").val()
+       //  const  caddress =$("#customer_address").val()
+       //  alert(cid+" "+cname+" "+caddress)
+
+        $.ajax({
+            url:'http://localhost:8080/Day5_POS_Backend_Web_exploded//api/v1/customer',
+            method:'DELETE',
+            success:function(response){
+                console.log(response);
+            },
+            error:function(error){
+                console.log(error);
+            }
+        })
+    }
+    function updateCustomer(){}
+    function deleteCustomer(){}
+    function getAllCustomer(){}
+</script>
+
+</body>
+</html>
