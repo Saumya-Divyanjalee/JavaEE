@@ -2,48 +2,255 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Customers</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Management</title>
+
 </head>
 <body>
-<div>
-    <button onclick="window.location.href='customer.html'">Customers</button>
-    <button onclick="window.location.href='item.html'">Items</button>
-    <button onclick="window.location.href='order.html'">Orders</button>
-    <button onclick="window.location.href='../index.html'">Home</button>
-</div>
-<h1>Customers</h1>
+<div class="container">
+    <div class="header">
+        <h1>Customer</h1>
+    </div>
 
-<div>
-    <input type="text" id="customer_id" placeholder="Customer ID">
-    <input type="text" id="customer_name" placeholder="Customer Name">
-    <input type="text" id="customer_address" placeholder="Customer Address">
-    <button onclick="saveCustomr()">Save</button>
-    <button onclick="updateCustomer()">Update</button>
-    <button onclick="deleteCustomer()">Delete</button>
+    <div class="nav-buttons">
+        <button class="nav-btn" onclick="window.location.href='customer.html'"> Customers</button>
+        <button class="nav-btn" onclick="window.location.href='item.html'"> Items</button>
+        <button class="nav-btn" onclick="window.location.href='order.html'">Orders</button>
+        <button class="nav-btn" onclick="window.location.href='../index.html'">Home</button>
+    </div>
+
+    <div id="alertBox" class="alert"></div>
+
+    <div class="form-section">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="customer_id">Customer ID </label>
+                <input type="text" id="customer_id" placeholder="Enter customer ID">
+            </div>
+            <div class="form-group">
+                <label for="customer_name">Customer Name </label>
+                <input type="text" id="customer_name" placeholder="Enter customer name">
+            </div>
+            <div class="form-group">
+                <label for="customer_address">Customer Address </label>
+                <input type="text" id="customer_address" placeholder="Enter customer address">
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="btn btn-save" onclick="saveCustomer()">Save</button>
+            <button class="btn btn-update" onclick="updateCustomer()">Update</button>
+            <button class="btn btn-delete" onclick="deleteCustomer()">Delete</button>
+            <button class="btn btn-clear" onclick="clearFields()">Clear</button>
+        </div>
+    </div>
+
+    <div class="table-section">
+        <div class="table-header">
+            <h2>Customer List</h2>
+        </div>
+        <div class="table-container">
+            <table id="customer-table">
+                <thead>
+                <tr>
+                    <th>Customer ID</th>
+                    <th>Customer Name</th>
+                    <th>Customer Address</th>
+                </tr>
+                </thead>
+                <tbody id="tableBody">
+                <tr class="empty-state">
+                    <td colspan="3">
+                        <span style="font-size: 48px;"></span>
+                        <p>No customers found. Add a customer to get started!</p>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
 <script src="../js/jquery-3.7.1.min.js"></script>
 <script>
-    function saveCustomr(){
-       // const cid =$("#customer_id").val()
-       //  const cname =$("#customer_name").val()
-       //  const  caddress =$("#customer_address").val()
-       //  alert(cid+" "+cname+" "+caddress)
+    const API_URL = 'http://localhost:8080/Day5_POS_Backend_Web_exploded/api/v1/customer';
+
+    function showAlert(message, type) {
+        const alertBox = $('#alertBox');
+        alertBox.removeClass('alert-success alert-error');
+        alertBox.addClass(`alert-${type}`);
+        alertBox.text(message);
+        alertBox.fadeIn();
+
+        setTimeout(() => {
+            alertBox.fadeOut();
+        }, 3000);
+    }
+
+    function validateFields() {
+        const cid = $("#customer_id").val().trim();
+        const cname = $("#customer_name").val().trim();
+        const caddress = $("#customer_address").val().trim();
+
+        if (!cid || !cname || !caddress) {
+            showAlert('Please fill in all fields', 'error');
+            return false;
+        }
+        return true;
+    }
+
+    function saveCustomer() {
+        if (!validateFields()) return;
+
+        const cid = $("#customer_id").val().trim();
+        const cname = $("#customer_name").val().trim();
+        const caddress = $("#customer_address").val().trim();
 
         $.ajax({
-            url:'http://localhost:8080/Day5_POS_Backend_Web_exploded//api/v1/customer',
-            method:'DELETE',
-            success:function(response){
-                console.log(response);
+            url: API_URL,
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                cid: cid,
+                cname: cname,
+                caddress: caddress
+            }),
+            success: function (response) {
+                const data = typeof response === 'string' ? JSON.parse(response) : response;
+                showAlert(data.message || 'Customer saved successfully', 'success');
+                getAllCustomer();
+                clearFields();
             },
-            error:function(error){
-                console.log(error);
+            error: function (xhr) {
+                const error = xhr.responseJSON || { message: 'Error saving customer' };
+                showAlert(error.message, 'error');
             }
-        })
+        });
     }
-    function updateCustomer(){}
-    function deleteCustomer(){}
-    function getAllCustomer(){}
-</script>
 
+    function updateCustomer() {
+        if (!validateFields()) return;
+
+        const cid = $("#customer_id").val().trim();
+        const cname = $("#customer_name").val().trim();
+        const caddress = $("#customer_address").val().trim();
+
+        $.ajax({
+            url: API_URL,
+            method: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                cid: cid,
+                cname: cname,
+                caddress: caddress
+            }),
+            success: function (response) {
+                const data = typeof response === 'string' ? JSON.parse(response) : response;
+                showAlert(data.message || 'Customer updated successfully', 'success');
+                getAllCustomer();
+                clearFields();
+            },
+            error: function (xhr) {
+                const error = xhr.responseJSON || { message: 'Error updating customer' };
+                showAlert(error.message, 'error');
+            }
+        });
+    }
+//query string parameter
+    function deleteCustomer() {
+        const cid = $("#customer_id").val().trim();
+
+        if (!cid) {
+            showAlert('Please enter Customer ID to delete', 'error');
+            return;
+        }
+
+        if (!confirm('Are you sure you want to delete this customer?')) {
+            return;
+        }
+
+        $.ajax({
+            url: API_URL + '?cid=' + cid,
+            method: 'DELETE',
+            success: function (response) {
+                const data = typeof response === 'string' ? JSON.parse(response) : response;
+                showAlert(data.message || 'Customer deleted successfully', 'success');
+                getAllCustomer();
+                clearFields();
+            },
+            error: function (xhr) {
+                const error = xhr.responseJSON || { message: 'Error deleting customer' };
+                showAlert(error.message, 'error');
+            }
+        });
+    }
+
+    function getAllCustomer() {
+        $.ajax({
+            url: API_URL,
+            method: 'GET',
+            success: function (response) {
+                $("#tableBody").empty();
+
+                if (response.length === 0) {
+                    $("#tableBody").html(`
+                            <tr class="empty-state">
+                                <td colspan="3">
+                                    <span style="font-size: 48px;">📋</span>
+                                    <p>No customers found. Add a customer to get started!</p>
+                                </td>
+                            </tr>
+                        `);
+                    return;
+                }
+
+                for (let customer of response) {
+                    let row = `
+                            <tr onclick="selectRow(this, '${customer.cid}', '${customer.cname}', '${customer.caddress}')">
+                                <td>${customer.cid}</td>
+                                <td>${customer.cname}</td>
+                                <td>${customer.caddress}</td>
+                            </tr>`;
+                    $("#tableBody").append(row);
+                }
+            },
+            error: function (xhr) {
+                showAlert('Error loading customers', 'error');
+            }
+        });
+    }
+
+    function selectRow(row, cid, cname, caddress) {
+        // Remove previous selection
+        $('#tableBody tr').removeClass('selected');
+
+        // Add selection to clicked row
+        $(row).addClass('selected');
+
+        // Populate form fields
+        $("#customer_id").val(cid);
+        $("#customer_name").val(cname);
+        $("#customer_address").val(caddress);
+    }
+
+    function clearFields() {
+        $("#customer_id").val("");
+        $("#customer_name").val("");
+        $("#customer_address").val("");
+        $('#tableBody tr').removeClass('selected');
+    }
+
+    // Load customers on page load
+    window.onload = function () {
+        getAllCustomer();
+    };
+
+    // Add Enter key support
+    $('input').keypress(function(e) {
+        if (e.which === 13) {
+            saveCustomer();
+        }
+    });
+</script>
 </body>
 </html>
